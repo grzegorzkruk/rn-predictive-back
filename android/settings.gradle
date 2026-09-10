@@ -1,0 +1,36 @@
+/*
+ * Scratch app for Android predictive back.
+ *
+ * react-native is compiled from the local checkout at
+ *   ../react-native/packages/react-native
+ * (symlinked into node_modules/react-native by scripts/link.js).
+ */
+
+pluginManagement {
+    includeBuild("../node_modules/@react-native/gradle-plugin")
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex -> ex.autolinkLibrariesFromCommand() }
+
+rootProject.name = 'PredictiveBack'
+
+include ':app'
+includeBuild("../node_modules/@react-native/gradle-plugin")
+
+// Build react-native (and Hermes) from source instead of consuming the
+// published AAR. Everything under ../react-native is then live: edit
+// ReactActivity.java, rebuild, reinstall.
+includeBuild("../node_modules/react-native") {
+    dependencySubstitution {
+        substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
+        substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
+        substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+        substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+    }
+}
