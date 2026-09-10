@@ -27,6 +27,11 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         onPress={() => navigation.navigate('AnimatedProgress')}
       />
       <Item
+        title="Reanimated progress"
+        hint="Same host view, consumed with Reanimated useEvent on the UI thread."
+        onPress={() => navigation.navigate('ReanimatedProgress')}
+      />
+      <Item
         title="Intercept ownership"
         hint="BackHandler.setInterceptEnabled on and off, plus hardwareBackPress."
         onPress={() => navigation.navigate('InterceptToggle')}

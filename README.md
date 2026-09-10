@@ -1,18 +1,19 @@
 # rn-predictive-back
 
 Scratch Android app for developing React Native's predictive back gesture with
-`react-native-screens` and `react-navigation`. Nothing is vendored: the three
-libraries are symlinked from their local checkouts, so an edit in any of them
-shows up on the next rebuild with no publish step.
+`react-native-screens` and `react-navigation`. Nothing is vendored: the
+libraries below are symlinked from their local checkouts, so an edit in any of
+them shows up on the next rebuild with no publish step.
 
 ## Repo layout expected
 
 ```
 CALLSTACK/
-  rn-predictive-back/     <- this app
-  react-native/           <- RN monorepo (branch with the predictive back work)
-  react-native-screens/   <- screens monorepo
-  react-navigation/       <- navigation monorepo
+  rn-predictive-back/        <- this app
+  react-native/              <- RN monorepo (branch with the predictive back work)
+  react-native-screens/      <- screens monorepo
+  react-navigation/          <- navigation monorepo
+  react-native-reanimated/   <- Reanimated monorepo (for the Reanimated progress screen)
 ```
 
 ## How the linking works
@@ -21,12 +22,16 @@ CALLSTACK/
 the checkouts are cut from), which is what lets the React Native CLI and Gradle
 autolinking discover the libraries and their codegen configs. Then
 `scripts/link.js` (a `postinstall` hook) **replaces the installed folders with
-symlinks to the local checkouts**, so the actual build uses local source:
+symlinks to the local checkouts**, so the actual build uses local source.
+Reanimated and Worklets are `link:` dependencies pointing at the local monorepo
+(those packages are unpublished `-main` versions):
 
 | Package                                | Resolves to                                  |
 | -------------------------------------- | -------------------------------------------- |
 | `react-native`                         | `../react-native/packages/react-native`      |
 | `react-native-screens`                 | `../react-native-screens`                    |
+| `react-native-reanimated`              | `../react-native-reanimated/packages/react-native-reanimated` |
+| `react-native-worklets`                | `../react-native-reanimated/packages/react-native-worklets` |
 | `@react-navigation/native`, `native-stack`, `core`, `elements`, `routers` | `../react-navigation/packages/*` |
 | `@react-native/codegen`, `metro-config`, `babel-preset`, `gradle-plugin`, … | `../react-native/packages/*` (these are unpublished `-main` versions) |
 
@@ -75,6 +80,8 @@ Rebuild loop after native changes:
   commented in).
 - **Animated progress** — `PredictiveBackAnimatedView` + `Animated.event` (native driver),
   the single recommended JS path for progress.
+- **Reanimated progress** — the same host view, consumed with Reanimated `useEvent`
+  (UI-thread worklet, no JS per frame).
 - **Intercept ownership** — `BackHandler.setInterceptEnabled(true/false)` toggle with an
   on-screen log of `hardwareBackPress` events.
 

@@ -7,12 +7,14 @@ import { AnimatedProgressScreen } from './screens/AnimatedProgressScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { InterceptToggleScreen } from './screens/InterceptToggleScreen';
 import { PlainStackScreen } from './screens/PlainStackScreen';
+import { ReanimatedProgressScreen } from './screens/ReanimatedProgressScreen';
 import { StackV5Screen } from './screens/StackV5Screen';
 
 export type RootStackParamList = {
   Home: undefined;
   Plain: { depth: number };
   AnimatedProgress: undefined;
+  ReanimatedProgress: undefined;
   InterceptToggle: undefined;
   StackV5: undefined;
 };
@@ -63,6 +65,11 @@ export function NavigationDemo({
             name="AnimatedProgress"
             component={AnimatedProgressScreen}
             options={{ title: 'Animated progress' }}
+          />
+          <Stack.Screen
+            name="ReanimatedProgress"
+            component={ReanimatedProgressScreen}
+            options={{ title: 'Reanimated progress' }}
           />
           <Stack.Screen
             name="InterceptToggle"

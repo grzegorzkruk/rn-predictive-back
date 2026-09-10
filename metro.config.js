@@ -1,10 +1,12 @@
 /**
  * Metro config for the predictive-back scratch app.
  *
- * Three checkouts are linked into node_modules as symlinks by scripts/link.js:
+ * Checkouts linked into node_modules as symlinks by scripts/link.js:
  *   react-native            -> ../react-native/packages/react-native
  *   react-native-screens    -> ../react-native-screens
  *   react-navigation        -> ../react-navigation/packages/*
+ *   react-native-reanimated -> ../react-native-reanimated/packages/react-native-reanimated
+ *   react-native-worklets   -> ../react-native-reanimated/packages/react-native-worklets
  *
  * watchFolders must list every linked root, otherwise Metro does not see edits
  * made in those repos.
@@ -66,6 +68,8 @@ const config = {
     path.join(RN_REPO, 'packages', 'polyfills'),
     path.join(RN_REPO, 'packages', 'virtualized-lists'),
     path.join(CALLSTACK, 'react-native-screens'),
+    path.join(CALLSTACK, 'react-native-reanimated', 'packages', 'react-native-reanimated'),
+    path.join(CALLSTACK, 'react-native-reanimated', 'packages', 'react-native-worklets'),
     NAV_PACKAGES,
   ],
 
@@ -94,6 +98,8 @@ const config = {
       pathToRegex(path.join(CALLSTACK, 'react-native-screens', 'TVOSExample')),
       pathToRegex(path.join(CALLSTACK, 'react-native-screens', 'apps')),
       pathToRegex(path.join(CALLSTACK, 'react-navigation', 'example')),
+      pathToRegex(path.join(CALLSTACK, 'react-native-reanimated', 'apps')),
+      pathToRegex(path.join(CALLSTACK, 'react-native-reanimated', 'docs')),
     ],
 
     resolveRequest: (context, moduleName, platform) => {
