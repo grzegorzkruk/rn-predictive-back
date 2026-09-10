@@ -1,56 +1,28 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { StatusBar } from 'react-native';
 
-import { AnimatedProgressScreen } from './screens/AnimatedProgressScreen';
-import { HomeScreen } from './screens/HomeScreen';
-import { InterceptToggleScreen } from './screens/InterceptToggleScreen';
-import { PlainStackScreen } from './screens/PlainStackScreen';
+import { NavigationDemo } from './NavigationDemo';
+import { RootV5Screen } from './screens/RootV5Screen';
 
-export type RootStackParamList = {
-  Home: undefined;
-  Plain: { depth: number };
-  AnimatedProgress: undefined;
-  InterceptToggle: undefined;
-};
+/**
+ * Two mutually exclusive trees, switched from inside the app.
+ *
+ *   navigation -- react-navigation + screens v4, plus the nested v5 control
+ *   rootV5     -- screens v5 `Stack.Host` as the only screen container in the tree
+ *
+ * The switch is not cosmetic. `StackContainer` picks its FragmentManager by
+ * walking up the view tree to the first `FragmentProviding` ancestor, so a v4
+ * stack mounted anywhere above `Stack.Host` captures the v5 fragments into its
+ * own child FragmentManager -- where androidx' predictive-back callback can never
+ * enable, because it requires the *parent* fragment to be primary navigation
+ * (which screens never sets on a v4 host fragment). Swapping the trees is what
+ * lets one app show both outcomes.
+ */
+export default function App(): React.JSX.Element {
+  const [mode, setMode] = React.useState<'navigation' | 'rootV5'>('navigation');
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+  if (mode === 'rootV5') {
+    return <RootV5Screen onExit={() => setMode('navigation')} />;
+  }
 
-function App(): React.JSX.Element {
-  return (
-    <>
-      <StatusBar barStyle="light-content" backgroundColor="#0b1020" />
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: '#0b1020' },
-            headerTintColor: '#fff',
-            contentStyle: { backgroundColor: '#0b1020' },
-            // Android: ask the system to animate the back gesture when nothing
-            // in React Native consumes it.
-            animation: 'slide_from_right',
-          }}>
-          <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Predictive back' }} />
-          <Stack.Screen
-            name="Plain"
-            component={PlainStackScreen}
-            options={{ title: 'Plain stack screen' }}
-          />
-          <Stack.Screen
-            name="AnimatedProgress"
-            component={AnimatedProgressScreen}
-            options={{ title: 'Animated progress' }}
-          />
-          <Stack.Screen
-            name="InterceptToggle"
-            component={InterceptToggleScreen}
-            options={{ title: 'Intercept ownership' }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </>
-  );
+  return <NavigationDemo onOpenRootV5={() => setMode('rootV5')} />;
 }
-
-export default App;

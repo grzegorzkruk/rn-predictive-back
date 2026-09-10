@@ -35,6 +35,18 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
+    // Points at android/app/src/main/jni/CMakeLists.txt, which is RN's
+    // default-app-setup/CMakeLists.txt plus RN_SERIALIZABLE_STATE / HERMES_V1_ENABLED
+    // for every autolinked native library. Without it, third-party codegen libs
+    // (react-native-screens above all) compile `react/renderer/core/Props.h` with a
+    // different struct layout than libreactnative.so and the app SIGSEGVs at startup.
+    // The RN Gradle plugin only injects its own path when this is unset.
+    externalNativeBuild {
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+        }
+    }
+
     namespace "com.predictiveback"
     defaultConfig {
         applicationId "com.predictiveback"

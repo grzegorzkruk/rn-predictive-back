@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { RootStackParamList } from '../App';
+import type { RootStackParamList } from '../NavigationDemo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Plain'>;
 

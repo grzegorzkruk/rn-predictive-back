@@ -17,6 +17,9 @@ const CALLSTACK = path.resolve(__dirname, '..');
 const RN_REPO = path.join(CALLSTACK, 'react-native');
 const NAV_PACKAGES = path.join(CALLSTACK, 'react-navigation', 'packages');
 
+// The single React copy every module in the graph must share.
+const APP_REACT = path.join(__dirname, 'node_modules', 'react');
+
 /**
  * react-navigation ships compiled `lib/` but its sources are only reachable
  * through the custom `@react-navigation/source` export condition. Map the
@@ -98,6 +101,19 @@ const config = {
       if (navSource != null) {
         return context.resolveRequest(context, navSource, platform);
       }
+
+      // Both this app and the react-native checkout own a real node_modules/react.
+      // Anything resolved from inside a watchFolder walks up and can land on RN's
+      // copy, which gives two React instances -> "Invalid hook call".
+      // react-navigation's NavigationContainer was the first to hit it.
+      if (moduleName === 'react' || moduleName.startsWith('react/')) {
+        return context.resolveRequest(
+          context,
+          path.join(APP_REACT, moduleName === 'react' ? '' : moduleName.slice('react/'.length)),
+          platform,
+        );
+      }
+
       return context.resolveRequest(context, moduleName, platform);
     },
   },

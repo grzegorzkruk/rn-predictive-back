@@ -2,11 +2,13 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { RootStackParamList } from '../App';
+import { OpenRootV5Context, type RootStackParamList } from '../NavigationDemo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props): React.JSX.Element {
+  const openRootV5 = React.useContext(OpenRootV5Context);
+
   return (
     <View style={styles.container}>
       <Text style={styles.lede}>
@@ -28,6 +30,16 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         title="Intercept ownership"
         hint="BackHandler.setInterceptEnabled on and off, plus hardwareBackPress."
         onPress={() => navigation.navigate('InterceptToggle')}
+      />
+      <Item
+        title="Stack v5 (nested)"
+        hint="Control. Stack.Host inside the v4 stack: its fragments land in ScreenStackFragment's child FragmentManager, whose back callback never enables."
+        onPress={() => navigation.navigate('StackV5')}
+      />
+      <Item
+        title="Stack v5 (root)"
+        hint="Test. Swaps the tree so Stack.Host is the only screen container and its fragments live in the activity FragmentManager. Push to depth 3, then swipe."
+        onPress={openRootV5}
       />
     </View>
   );

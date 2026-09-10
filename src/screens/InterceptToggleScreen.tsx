@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
-import type { RootStackParamList } from '../App';
+import type { RootStackParamList } from '../NavigationDemo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'InterceptToggle'>;
 
