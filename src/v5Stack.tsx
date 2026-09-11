@@ -131,9 +131,9 @@ export function V5Page({
 
 /**
  * JS-driven marker that only moves when React Native owns the swipe
- * (`setInterceptEnabled(true)` → PredictiveBackAnimatedView gets progress).
- * When the switch is off, screens has yielded and this card stays still while
- * the whole page seeks.
+ * (`claimPredictiveBack` → PredictiveBackAnimatedView gets progress).
+ * When the claim is released, screens has yielded and this card stays still
+ * while the whole page seeks.
  */
 function RnInterceptCard(): React.JSX.Element {
   const progress = useAnimatedValue(0);
@@ -161,7 +161,7 @@ function RnInterceptCard(): React.JSX.Element {
       <Animated.View style={cardStyle}>
         <Text style={pageStyles.cardTitle}>RN card</Text>
         <Text style={pageStyles.cardHint}>
-          Moves only while JS intercept is on. Off: this stays put, the page seeks.
+          Moves only while a JS claim is held. Released: this stays put, the page seeks.
         </Text>
       </Animated.View>
     </View>

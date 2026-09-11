@@ -35,11 +35,13 @@ export const OpenRootV5Context = React.createContext<() => void>(() => {});
 
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
+let navigationClaim: {remove: () => void} | null = null;
+
 /**
- * One owner for the v4 tree. Other screens used to call setInterceptEnabled(false)
- * on blur, which on API 36 disables RN's callback and turns the *next* swipe into
- * a system app-exit. Home is the only place we want that. Everywhere else RN must
- * consume so NavigationContainer's BackHandler can pop.
+ * One owner for the v4 tree. Home yields so the system can play app-exit.
+ * Everywhere else RN must consume so NavigationContainer's BackHandler can pop.
+ * A claim (not setInterceptEnabled) so a later overlay can stack on top and
+ * release without turning native consume off under someone else.
  *
  * Must not use useNavigationState here: that hook requires a navigator, and
  * NavigationContainer's direct children are outside one.
@@ -50,12 +52,18 @@ function syncAndroidBackOwnership(state?: NavigationState): void {
   }
   const routeName =
     state?.routes[state.index]?.name ?? navigationRef.getCurrentRoute()?.name;
-  BackHandler.setInterceptEnabled(routeName != null && routeName !== 'Home');
+  const shouldOwn = routeName != null && routeName !== 'Home';
+  if (shouldOwn && navigationClaim == null) {
+    navigationClaim = BackHandler.claimPredictiveBack();
+  } else if (!shouldOwn && navigationClaim != null) {
+    navigationClaim.remove();
+    navigationClaim = null;
+  }
 }
 
 /**
  * The react-navigation surface: react-native's own predictive-back primitives
- * (`PredictiveBackAnimatedView`, `BackHandler.setInterceptEnabled`), the v4 stack
+ * (`PredictiveBackAnimatedView`, `BackHandler.claimPredictiveBack`), the v4 stack
  * that `@react-navigation/native-stack` drives, and the *nested* v5 control.
  *
  * It has to unmount completely for the root v5 experiment to be meaningful. A
@@ -71,9 +79,9 @@ export function NavigationDemo({
 }): React.JSX.Element {
   useEffect(() => {
     return () => {
-      if (Platform.OS === 'android') {
-        BackHandler.setInterceptEnabled(false);
-      }
+      navigationClaim?.remove();
+      navigationClaim = null;
+      BackHandler.setInterceptEnabled(false);
     };
   }, []);
 

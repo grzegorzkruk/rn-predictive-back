@@ -33,11 +33,8 @@ export function AnimatedProgressScreen(_props: Props): React.JSX.Element {
   // This screen can pop, so RN has to consume the gesture while it is focused.
   useFocusEffect(
     React.useCallback(() => {
-      if (Platform.OS !== 'android') {
-        return undefined;
-      }
-      BackHandler.setInterceptEnabled(true);
-      return undefined;
+      const claim = BackHandler.claimPredictiveBack();
+      return () => claim.remove();
     }, []),
   );
 

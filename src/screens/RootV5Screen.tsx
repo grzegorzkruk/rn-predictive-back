@@ -32,30 +32,15 @@ export function RootV5Screen({
   const [intercept, setIntercept] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' || !intercept) {
       return undefined;
     }
-    if (!intercept) {
-      BackHandler.setInterceptEnabled(false);
-      return undefined;
-    }
-
-    // FragmentManager registers its back callback lazily on the push
-    // transaction, *after* this effect. An enabled FM callback then lands
-    // above InAppPredictiveBack, so a second Push would seek the page and
-    // leave the cyan card still. RN's setInterceptEnabled(true) is a no-op
-    // if already consuming, so drop and re-add after the native commit.
-    const armRn = () => {
-      BackHandler.setInterceptEnabled(false);
-      BackHandler.setInterceptEnabled(true);
-    };
-    armRn();
-    const timer = setTimeout(armRn, 64);
-    return () => {
-      clearTimeout(timer);
-      BackHandler.setInterceptEnabled(false);
-    };
-  }, [intercept, attachedCount]);
+    // Lifetime claim: RN owns the swipe until the switch turns off (or this
+    // screen unmounts). PRIORITY_OVERLAY keeps the claim above FragmentManager
+    // after a later Push — no pulse of setInterceptEnabled.
+    const claim = BackHandler.claimPredictiveBack();
+    return () => claim.remove();
+  }, [intercept]);
 
   // When RN owns the swipe, FragmentManager never pops. Commit is
   // hardwareBackPress — we have to detach the top route ourselves.
@@ -92,14 +77,14 @@ export function RootV5Screen({
       </View>
 
       <View style={styles.interceptRow}>
-        <Text style={styles.interceptLabel}>JS intercept (give swipe to RN)</Text>
+        <Text style={styles.interceptLabel}>JS claim (give swipe to RN)</Text>
         <Switch value={intercept} onValueChange={setIntercept} />
       </View>
 
       <Text style={styles.hint}>
         {intercept
-          ? 'RN owns the swipe. The cyan card on depth 2+ follows the finger; the page itself will not seek. Commit is hardwareBackPress → popFromJs.'
-          : 'Screens has yielded. Swipe from the left edge: the page seeks, the cyan card stays still. onNativeDismiss on commit only.'}
+          ? 'This screen holds a claimPredictiveBack token. The cyan card on depth 2+ follows the finger; the page itself will not seek. Commit is hardwareBackPress → popFromJs. Turning the switch off releases the claim.'
+          : 'No JS claim. Screens has yielded. Swipe from the left edge: the page seeks, the cyan card stays still. onNativeDismiss on commit only.'}
       </Text>
 
       <View style={styles.stackArea}>

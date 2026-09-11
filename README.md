@@ -16,7 +16,8 @@ them shows up on the next rebuild with no publish step.
 - **Reanimated progress** — the same host view, consumed with Reanimated `useEvent`
   (UI-thread worklet, no JS per frame).
 - **Intercept ownership** — `BackHandler.setInterceptEnabled(true/false)` toggle with an
-  on-screen log of `hardwareBackPress` events.
+  on-screen log of `hardwareBackPress` events. Overlays should use
+  `BackHandler.claimPredictiveBack()` instead (token released on dismiss).
 
 ## Device requirement
 
