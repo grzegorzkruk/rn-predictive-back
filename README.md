@@ -125,6 +125,16 @@ used in 0.85/0.86 are gone. Both are **not** related to the predictive back work
   `reactApplicationContext.currentActivity ?: reactApplicationContext`, which is the
   replacement RN itself recommends. **This edit is in the react-navigation checkout**,
   so it is worth upstreaming there.
+- `react-native-worklets` / `react-native-reanimated` CMake reads
+  `ReactAndroid_VERSION_MINOR` from the prefab. From-source RN is `1000.0.0`, so
+  that minor is `0` and worklets links the removed `hermes-engine::libhermes`
+  target. Both packages now treat minor `0` as `1000`. Worklets' Gradle
+  `getReactNativeMinorVersion()` has the same `1000.` special case so
+  `HERMES_V1_ENABLED` stays on. **These edits are in the reanimated checkout.**
+- `includeBuild(react-native)` does not inherit this app's
+  `reactNativeArchitectures=arm64-v8a`. Without a pin, ReactAndroid compiles
+  every ABI into `ReactAndroid/.cxx` (~14GB). Pinned in
+  `../react-native/packages/react-native/gradle.properties`.
 
 ## Running it against the emulator
 

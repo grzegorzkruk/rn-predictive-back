@@ -6,6 +6,7 @@ import { StatusBar } from 'react-native';
 import { AnimatedProgressScreen } from './screens/AnimatedProgressScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { InterceptToggleScreen } from './screens/InterceptToggleScreen';
+import { NativeHandlerScreen } from './screens/NativeHandlerScreen';
 import { PlainStackScreen } from './screens/PlainStackScreen';
 import { ReanimatedProgressScreen } from './screens/ReanimatedProgressScreen';
 import { StackV5Screen } from './screens/StackV5Screen';
@@ -16,6 +17,7 @@ export type RootStackParamList = {
   AnimatedProgress: undefined;
   ReanimatedProgress: undefined;
   InterceptToggle: undefined;
+  NativeHandler: undefined;
   StackV5: undefined;
 };
 
@@ -75,6 +77,11 @@ export function NavigationDemo({
             name="InterceptToggle"
             component={InterceptToggleScreen}
             options={{ title: 'Intercept ownership' }}
+          />
+          <Stack.Screen
+            name="NativeHandler"
+            component={NativeHandlerScreen}
+            options={{ title: 'Native handler' }}
           />
           <Stack.Screen
             name="StackV5"
