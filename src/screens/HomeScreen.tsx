@@ -49,7 +49,7 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         />
         <Item
           title="Stack v5 (root)"
-          hint="Test. Swaps the tree so Stack.Host is the only screen container and its fragments live in the activity FragmentManager. Push to depth 3, then swipe."
+          hint="Test. Root Stack.Host. Push past depth 1, then use JS intercept to hand the swipe to RN (the card moves) or back to screens (the page seeks)."
             onPress={openRootV5}
           />
       </View>

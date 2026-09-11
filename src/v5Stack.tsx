@@ -1,5 +1,14 @@
 import * as React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {useMemo} from 'react';
+import {
+  Animated,
+  Platform,
+  PredictiveBackAnimatedView,
+  StyleSheet,
+  Text,
+  useAnimatedValue,
+  View,
+} from 'react-native';
 
 /**
  * Shared driver for react-native-screens **Stack v5** (`Stack.Host` /
@@ -100,7 +109,13 @@ export function useV5StackRoutes() {
   };
 }
 
-export function V5Page({ route }: { route: V5Route }): React.JSX.Element {
+export function V5Page({
+  route,
+  showRnCard = false,
+}: {
+  route: V5Route;
+  showRnCard?: boolean;
+}): React.JSX.Element {
   return (
     <View style={[pageStyles.page, { backgroundColor: pageColor(route.depth) }]}>
       <Text style={pageStyles.title}>v5 · depth {route.depth}</Text>
@@ -109,6 +124,46 @@ export function V5Page({ route }: { route: V5Route }): React.JSX.Element {
         This page is a StackScreenFragment. Its return transition is an
         androidx.transition Slide, which FragmentManager can seek.
       </Text>
+      {showRnCard && route.depth >= 2 ? <RnInterceptCard /> : null}
+    </View>
+  );
+}
+
+/**
+ * JS-driven marker that only moves when React Native owns the swipe
+ * (`setInterceptEnabled(true)` → PredictiveBackAnimatedView gets progress).
+ * When the switch is off, screens has yielded and this card stays still while
+ * the whole page seeks.
+ */
+function RnInterceptCard(): React.JSX.Element {
+  const progress = useAnimatedValue(0);
+  const onProgress = useMemo(
+    () => Animated.event([{nativeEvent: {progress}}], {useNativeDriver: true}),
+    [progress],
+  );
+  const cardStyle = useMemo(
+    () => [
+      pageStyles.card,
+      {
+        transform: [
+          {scale: progress.interpolate({inputRange: [0, 1], outputRange: [1, 0.86]})},
+          {translateX: progress.interpolate({inputRange: [0, 1], outputRange: [0, 56]})},
+        ],
+        opacity: progress.interpolate({inputRange: [0, 1], outputRange: [1, 0.55]}),
+      },
+    ],
+    [progress],
+  );
+
+  return (
+    <View style={pageStyles.cardSlot}>
+      {Platform.OS === 'android' ? <PredictiveBackAnimatedView onProgress={onProgress} /> : null}
+      <Animated.View style={cardStyle}>
+        <Text style={pageStyles.cardTitle}>RN card</Text>
+        <Text style={pageStyles.cardHint}>
+          Moves only while JS intercept is on. Off: this stays put, the page seeks.
+        </Text>
+      </Animated.View>
     </View>
   );
 }
@@ -138,5 +193,25 @@ const pageStyles = StyleSheet.create({
     color: '#cbd5f5',
     fontSize: 13,
     lineHeight: 18,
+  },
+  cardSlot: {
+    marginTop: 16,
+  },
+  card: {
+    borderRadius: 14,
+    backgroundColor: '#38bdf8',
+    padding: 16,
+    gap: 4,
+  },
+  cardTitle: {
+    color: '#0f172a',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cardHint: {
+    color: '#0f172a',
+    fontSize: 13,
+    lineHeight: 18,
+    opacity: 0.8,
   },
 });
