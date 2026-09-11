@@ -35,9 +35,27 @@ export function RootV5Screen({
     if (Platform.OS !== 'android') {
       return undefined;
     }
-    BackHandler.setInterceptEnabled(intercept);
-    return () => BackHandler.setInterceptEnabled(false);
-  }, [intercept]);
+    if (!intercept) {
+      BackHandler.setInterceptEnabled(false);
+      return undefined;
+    }
+
+    // FragmentManager registers its back callback lazily on the push
+    // transaction, *after* this effect. An enabled FM callback then lands
+    // above InAppPredictiveBack, so a second Push would seek the page and
+    // leave the cyan card still. RN's setInterceptEnabled(true) is a no-op
+    // if already consuming, so drop and re-add after the native commit.
+    const armRn = () => {
+      BackHandler.setInterceptEnabled(false);
+      BackHandler.setInterceptEnabled(true);
+    };
+    armRn();
+    const timer = setTimeout(armRn, 64);
+    return () => {
+      clearTimeout(timer);
+      BackHandler.setInterceptEnabled(false);
+    };
+  }, [intercept, attachedCount]);
 
   // When RN owns the swipe, FragmentManager never pops. Commit is
   // hardwareBackPress — we have to detach the top route ourselves.
