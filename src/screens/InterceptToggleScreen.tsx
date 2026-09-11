@@ -54,7 +54,6 @@ export function InterceptToggleScreen({ navigation }: Props): React.JSX.Element 
       });
       return () => {
         subscription.remove();
-        BackHandler.setInterceptEnabled(false);
       };
     }, [navigation, log]),
   );

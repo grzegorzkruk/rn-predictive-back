@@ -43,7 +43,7 @@ export function ReanimatedProgressScreen(_props: Props): React.JSX.Element {
         return undefined;
       }
       BackHandler.setInterceptEnabled(true);
-      return () => BackHandler.setInterceptEnabled(false);
+      return undefined;
     }, []),
   );
 

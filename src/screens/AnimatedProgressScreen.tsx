@@ -37,7 +37,7 @@ export function AnimatedProgressScreen(_props: Props): React.JSX.Element {
         return undefined;
       }
       BackHandler.setInterceptEnabled(true);
-      return () => BackHandler.setInterceptEnabled(false);
+      return undefined;
     }, []),
   );
 

@@ -1,7 +1,12 @@
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+  type NavigationState,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { StatusBar } from 'react-native';
+import { useEffect } from 'react';
+import { BackHandler, Platform, StatusBar } from 'react-native';
 
 import { AnimatedProgressScreen } from './screens/AnimatedProgressScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -28,6 +33,26 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  */
 export const OpenRootV5Context = React.createContext<() => void>(() => {});
 
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+/**
+ * One owner for the v4 tree. Other screens used to call setInterceptEnabled(false)
+ * on blur, which on API 36 disables RN's callback and turns the *next* swipe into
+ * a system app-exit. Home is the only place we want that. Everywhere else RN must
+ * consume so NavigationContainer's BackHandler can pop.
+ *
+ * Must not use useNavigationState here: that hook requires a navigator, and
+ * NavigationContainer's direct children are outside one.
+ */
+function syncAndroidBackOwnership(state?: NavigationState): void {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  const routeName =
+    state?.routes[state.index]?.name ?? navigationRef.getCurrentRoute()?.name;
+  BackHandler.setInterceptEnabled(routeName != null && routeName !== 'Home');
+}
+
 /**
  * The react-navigation surface: react-native's own predictive-back primitives
  * (`PredictiveBackAnimatedView`, `BackHandler.setInterceptEnabled`), the v4 stack
@@ -44,10 +69,21 @@ export function NavigationDemo({
 }: {
   onOpenRootV5: () => void;
 }): React.JSX.Element {
+  useEffect(() => {
+    return () => {
+      if (Platform.OS === 'android') {
+        BackHandler.setInterceptEnabled(false);
+      }
+    };
+  }, []);
+
   return (
     <OpenRootV5Context.Provider value={onOpenRootV5}>
       <StatusBar barStyle="light-content" backgroundColor="#0b1020" />
-      <NavigationContainer>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => syncAndroidBackOwnership()}
+        onStateChange={syncAndroidBackOwnership}>
         <Stack.Navigator
           screenOptions={{
             headerStyle: { backgroundColor: '#0b1020' },
