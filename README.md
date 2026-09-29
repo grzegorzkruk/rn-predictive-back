@@ -16,8 +16,24 @@ them shows up on the next rebuild with no publish step.
 - **Reanimated progress** — the same host view, consumed with Reanimated `useEvent`
   (UI-thread worklet, no JS per frame).
 - **Intercept ownership** — `BackHandler.setInterceptEnabled(true/false)` toggle with an
-  on-screen log of `hardwareBackPress` events. Overlays should use
-  `BackHandler.claimPredictiveBack()` instead (token released on dismiss).
+  on-screen log of `hardwareBackPress` events.
+- **FragmentManager callbacks** — same root `Stack.Host`, with React Native's
+  callback left disabled. Activity 1.8 is pinned so FragmentManager can override
+  `handleOnBackStarted` / `Progressed` / `Cancelled` and seek the Slide. The
+  screen reports whether those methods are actually on the classpath.
+- **Stack v5 (root)** — `Stack.Host` mounted at the root of the React tree, so its
+  fragments reach the activity's FragmentManager and its `androidx.transition` pop
+  can be seeked by FragmentManager.
+
+## Known limitation being proposed for fixing
+
+`setInterceptEnabled(true)` does not reserve the gesture. React Native registers at
+the platform default priority, the same priority FragmentManager uses, so whichever
+enabled callback registered last wins. FragmentManager registers lazily on each push
+transaction, so after a second push it takes the swipe back and a JS-driven view stops
+following the finger. `RootV5Screen` works around this by dropping and re-adding the
+callback after every push — that pulse is the workaround under discussion, not the
+intended design.
 
 ## Device requirement
 

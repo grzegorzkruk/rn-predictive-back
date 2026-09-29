@@ -35,13 +35,11 @@ export const OpenRootV5Context = React.createContext<() => void>(() => {});
 
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
-let navigationClaim: {remove: () => void} | null = null;
-
 /**
- * One owner for the v4 tree. Home yields so the system can play app-exit.
- * Everywhere else RN must consume so NavigationContainer's BackHandler can pop.
- * A claim (not setInterceptEnabled) so a later overlay can stack on top and
- * release without turning native consume off under someone else.
+ * One owner for the v4 tree. Other screens must not call setInterceptEnabled(false)
+ * on blur: on API 36 that disables RN's callback and turns the *next* swipe into a
+ * system app-exit. Home is the only place we want that. Everywhere else RN must
+ * consume so NavigationContainer's BackHandler can pop.
  *
  * Must not use useNavigationState here: that hook requires a navigator, and
  * NavigationContainer's direct children are outside one.
@@ -52,18 +50,12 @@ function syncAndroidBackOwnership(state?: NavigationState): void {
   }
   const routeName =
     state?.routes[state.index]?.name ?? navigationRef.getCurrentRoute()?.name;
-  const shouldOwn = routeName != null && routeName !== 'Home';
-  if (shouldOwn && navigationClaim == null) {
-    navigationClaim = BackHandler.claimPredictiveBack();
-  } else if (!shouldOwn && navigationClaim != null) {
-    navigationClaim.remove();
-    navigationClaim = null;
-  }
+  BackHandler.setInterceptEnabled(routeName != null && routeName !== 'Home');
 }
 
 /**
  * The react-navigation surface: react-native's own predictive-back primitives
- * (`PredictiveBackAnimatedView`, `BackHandler.claimPredictiveBack`), the v4 stack
+ * (`PredictiveBackAnimatedView`, `BackHandler.setInterceptEnabled`), the v4 stack
  * that `@react-navigation/native-stack` drives, and the *nested* v5 control.
  *
  * It has to unmount completely for the root v5 experiment to be meaningful. A
@@ -72,21 +64,30 @@ function syncAndroidBackOwnership(state?: NavigationState): void {
  * ancestor -- so while any v4 stack is mounted above `Stack.Host`, the host
  * cannot reach the root FragmentManager.
  */
+/**
+ * Opens the root FragmentManager example. Same reason as [OpenRootV5Context]:
+ * the v4 stack has to be unmounted or it captures the v5 fragments.
+ */
+export const OpenFragmentManagerContext = React.createContext<() => void>(
+  () => {},
+);
+
 export function NavigationDemo({
   onOpenRootV5,
+  onOpenFragmentManager,
 }: {
   onOpenRootV5: () => void;
+  onOpenFragmentManager: () => void;
 }): React.JSX.Element {
   useEffect(() => {
     return () => {
-      navigationClaim?.remove();
-      navigationClaim = null;
       BackHandler.setInterceptEnabled(false);
     };
   }, []);
 
   return (
     <OpenRootV5Context.Provider value={onOpenRootV5}>
+      <OpenFragmentManagerContext.Provider value={onOpenFragmentManager}>
       <StatusBar barStyle="light-content" backgroundColor="#0b1020" />
       <NavigationContainer
         ref={navigationRef}
@@ -134,6 +135,7 @@ export function NavigationDemo({
           />
         </Stack.Navigator>
       </NavigationContainer>
+      </OpenFragmentManagerContext.Provider>
     </OpenRootV5Context.Provider>
   );
 }

@@ -32,15 +32,32 @@ export function RootV5Screen({
   const [intercept, setIntercept] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS !== 'android' || !intercept) {
+    if (Platform.OS !== 'android') {
       return undefined;
     }
-    // Lifetime claim: RN owns the swipe until the switch turns off (or this
-    // screen unmounts). PRIORITY_OVERLAY keeps the claim above FragmentManager
-    // after a later Push — no pulse of setInterceptEnabled.
-    const claim = BackHandler.claimPredictiveBack();
-    return () => claim.remove();
-  }, [intercept]);
+    if (!intercept) {
+      BackHandler.setInterceptEnabled(false);
+      return undefined;
+    }
+
+    // Known limitation being proposed for fixing, kept visible on purpose:
+    // FragmentManager registers its back callback lazily on the push
+    // transaction, *after* this effect. Both register at PRIORITY_DEFAULT, so
+    // the later registration wins and a second Push would seek the page and
+    // leave the card still. setInterceptEnabled(true) is a no-op while already
+    // consuming, so the only way to get back on top is to drop and re-add.
+    // This pulse is the workaround, not the design.
+    const rearm = () => {
+      BackHandler.setInterceptEnabled(false);
+      BackHandler.setInterceptEnabled(true);
+    };
+    rearm();
+    const timer = setTimeout(rearm, 64);
+    return () => {
+      clearTimeout(timer);
+      BackHandler.setInterceptEnabled(false);
+    };
+  }, [intercept, attachedCount]);
 
   // When RN owns the swipe, FragmentManager never pops. Commit is
   // hardwareBackPress — we have to detach the top route ourselves.
@@ -77,14 +94,14 @@ export function RootV5Screen({
       </View>
 
       <View style={styles.interceptRow}>
-        <Text style={styles.interceptLabel}>JS claim (give swipe to RN)</Text>
+        <Text style={styles.interceptLabel}>JS intercept (give swipe to RN)</Text>
         <Switch value={intercept} onValueChange={setIntercept} />
       </View>
 
       <Text style={styles.hint}>
         {intercept
-          ? 'This screen holds a claimPredictiveBack token. The cyan card on depth 2+ follows the finger; the page itself will not seek. Commit is hardwareBackPress → popFromJs. Turning the switch off releases the claim.'
-          : 'No JS claim. Screens has yielded. Swipe from the left edge: the page seeks, the cyan card stays still. onNativeDismiss on commit only.'}
+          ? 'RN consumes via setInterceptEnabled, re-armed after each push. The cyan card on depth 2+ follows the finger; the page itself does not seek. Commit is hardwareBackPress -> popFromJs.'
+          : 'RN is not consuming, so FragmentManager owns the swipe. Swipe from the left edge: the page seeks, the cyan card stays still. onNativeDismiss on commit only.'}
       </Text>
 
       <View style={styles.stackArea}>

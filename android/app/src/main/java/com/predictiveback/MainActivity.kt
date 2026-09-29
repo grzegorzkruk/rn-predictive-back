@@ -3,7 +3,6 @@ package com.predictiveback
 import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.swmansion.rnscreens.fragment.restoration.RNScreensFragmentFactory
 
@@ -15,7 +14,7 @@ class MainActivity : ReactActivity() {
   override fun getMainComponentName(): String = "PredictiveBack"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
-      DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+      DefaultReactActivityDelegate(this, mainComponentName)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     // Required by react-native-screens: fragments restored by the system after process

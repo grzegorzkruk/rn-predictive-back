@@ -39,8 +39,11 @@ export function ReanimatedProgressScreen(_props: Props): React.JSX.Element {
 
   useFocusEffect(
     React.useCallback(() => {
-      const claim = BackHandler.claimPredictiveBack();
-      return () => claim.remove();
+      if (Platform.OS !== 'android') {
+        return undefined;
+      }
+      BackHandler.setInterceptEnabled(true);
+      return undefined;
     }, []),
   );
 

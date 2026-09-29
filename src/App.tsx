@@ -1,13 +1,16 @@
 import * as React from 'react';
 
 import { NavigationDemo } from './NavigationDemo';
+import { FragmentManagerBackScreen } from './screens/FragmentManagerBackScreen';
 import { RootV5Screen } from './screens/RootV5Screen';
 
 /**
  * Two mutually exclusive trees, switched from inside the app.
  *
- *   navigation -- react-navigation + screens v4, plus the nested v5 control
- *   rootV5     -- screens v5 `Stack.Host` as the only screen container in the tree
+ *   navigation       -- react-navigation + screens v4, plus the nested v5 control
+ *   rootV5           -- screens v5 `Stack.Host` as the only screen container
+ *   fragmentManager  -- same root host, RN callback left off so FragmentManager
+ *                        seeks the pop through the activity 1.8 callbacks
  *
  * The switch is not cosmetic. `StackContainer` picks its FragmentManager by
  * walking up the view tree to the first `FragmentProviding` ancestor, so a v4
@@ -18,11 +21,22 @@ import { RootV5Screen } from './screens/RootV5Screen';
  * lets one app show both outcomes.
  */
 export default function App(): React.JSX.Element {
-  const [mode, setMode] = React.useState<'navigation' | 'rootV5'>('navigation');
+  const [mode, setMode] = React.useState<
+    'navigation' | 'rootV5' | 'fragmentManager'
+  >('navigation');
 
   if (mode === 'rootV5') {
     return <RootV5Screen onExit={() => setMode('navigation')} />;
   }
 
-  return <NavigationDemo onOpenRootV5={() => setMode('rootV5')} />;
+  if (mode === 'fragmentManager') {
+    return <FragmentManagerBackScreen onExit={() => setMode('navigation')} />;
+  }
+
+  return (
+    <NavigationDemo
+      onOpenRootV5={() => setMode('rootV5')}
+      onOpenFragmentManager={() => setMode('fragmentManager')}
+    />
+  );
 }

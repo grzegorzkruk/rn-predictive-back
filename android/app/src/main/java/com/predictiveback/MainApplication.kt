@@ -26,10 +26,11 @@ class MainApplication : Application(), ReactApplication {
                             name: String,
                             reactContext: ReactApplicationContext,
                         ): NativeModule? =
-                            if (name == DemoPredictiveBackHandlerModule.NAME) {
-                              DemoPredictiveBackHandlerModule(reactContext)
-                            } else {
-                              null
+                            when (name) {
+                              DemoPredictiveBackHandlerModule.NAME ->
+                                  DemoPredictiveBackHandlerModule(reactContext)
+                              ActivityBackInfoModule.NAME -> ActivityBackInfoModule(reactContext)
+                              else -> null
                             }
 
                         override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
@@ -39,6 +40,15 @@ class MainApplication : Application(), ReactApplication {
                                       ReactModuleInfo(
                                           DemoPredictiveBackHandlerModule.NAME,
                                           DemoPredictiveBackHandlerModule::class.java.name,
+                                          false,
+                                          false,
+                                          false,
+                                          false,
+                                      ),
+                                  ActivityBackInfoModule.NAME to
+                                      ReactModuleInfo(
+                                          ActivityBackInfoModule.NAME,
+                                          ActivityBackInfoModule::class.java.name,
                                           false,
                                           false,
                                           false,

@@ -2,12 +2,17 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { OpenRootV5Context, type RootStackParamList } from '../NavigationDemo';
+import {
+  OpenFragmentManagerContext,
+  OpenRootV5Context,
+  type RootStackParamList,
+} from '../NavigationDemo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen({ navigation }: Props): React.JSX.Element {
   const openRootV5 = React.useContext(OpenRootV5Context);
+  const openFragmentManager = React.useContext(OpenFragmentManagerContext);
 
   return (
     <ScrollView>
@@ -48,10 +53,15 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
           onPress={() => navigation.navigate('StackV5')}
         />
         <Item
+          title="FragmentManager callbacks"
+          hint="Activity 1.8. RN stays off, so FragmentManager's handleOnBackStarted / Progressed / Cancelled seek the Slide. Push, then swipe."
+          onPress={openFragmentManager}
+        />
+        <Item
           title="Stack v5 (root)"
           hint="Test. Root Stack.Host. Push past depth 1, then use JS intercept to hand the swipe to RN (the card moves) or back to screens (the page seeks)."
-            onPress={openRootV5}
-          />
+          onPress={openRootV5}
+        />
       </View>
     </ScrollView>
   );
