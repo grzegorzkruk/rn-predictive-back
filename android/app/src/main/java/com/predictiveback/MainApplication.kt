@@ -30,6 +30,8 @@ class MainApplication : Application(), ReactApplication {
                               DemoPredictiveBackHandlerModule.NAME ->
                                   DemoPredictiveBackHandlerModule(reactContext)
                               ActivityBackInfoModule.NAME -> ActivityBackInfoModule(reactContext)
+                              BrownfieldNavigatorModule.NAME ->
+                                  BrownfieldNavigatorModule(reactContext)
                               else -> null
                             }
 
@@ -49,6 +51,15 @@ class MainApplication : Application(), ReactApplication {
                                       ReactModuleInfo(
                                           ActivityBackInfoModule.NAME,
                                           ActivityBackInfoModule::class.java.name,
+                                          false,
+                                          false,
+                                          false,
+                                          false,
+                                      ),
+                                  BrownfieldNavigatorModule.NAME to
+                                      ReactModuleInfo(
+                                          BrownfieldNavigatorModule.NAME,
+                                          BrownfieldNavigatorModule::class.java.name,
                                           false,
                                           false,
                                           false,

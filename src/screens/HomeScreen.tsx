@@ -7,6 +7,7 @@ import {
   OpenRootV5Context,
   type RootStackParamList,
 } from '../NavigationDemo';
+import { openNativeHost } from '../native/BrownfieldNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -22,6 +23,11 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
           screens let you flip that decision and watch what animates.
         </Text>
 
+        <Item
+          title="Brownfield: native host"
+          hint="Next activity on the stack. Native chrome plus an embedded ReactFragment. The host owns the gesture; the fragment only hears a commit."
+          onPress={openNativeHost}
+        />
         <Item
           title="Plain stack screen"
           hint="Push / pop with react-navigation + screens. Release the swipe early to cancel."

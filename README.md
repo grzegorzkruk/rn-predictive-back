@@ -6,7 +6,17 @@ libraries below are symlinked from their local checkouts, so an edit in any of
 them shows up on the next rebuild with no publish step.
 
 
+The launcher is a native activity. Open React Native from there, then
+**Brownfield: native host** pushes a third activity that embeds a
+`ReactFragment`. Back walks that stack in reverse.
+
 ## Screens in the app
+
+- **Brownfield: native host** — native activity with an embedded
+  `ReactFragment`. The fragment is not a `ReactActivity`, so it cannot claim
+  the gesture. The host switch does. Off: the system pops back to the React
+  Native screen. On: the host receives progress and forwards the commit as
+  `hardwareBackPress`.
 
 - **Plain stack screen** — react-navigation native stack over screens; tests whether the
   system-seeked pop animates (needs RN's back callback disabled in `MainActivity.kt`,
