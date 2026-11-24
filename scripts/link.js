@@ -1,6 +1,6 @@
 /**
- * Links the local checkouts of react-native, react-native-screens,
- * react-navigation, react-native-reanimated and react-native-worklets into
+ * Links the local checkouts of react-native, react-native-screens and
+ * react-navigation into
  * this app's node_modules, and links the tooling packages that only exist
  * inside the react-native monorepo.
  *
@@ -25,14 +25,6 @@ const RN_PACKAGES = path.join(RN_REPO, 'packages');
 const LINKS = {
   'react-native': path.join(RN_PACKAGES, 'react-native'),
   'react-native-screens': path.join(CALLSTACK, 'react-native-screens'),
-  'react-native-reanimated': path.join(
-    CALLSTACK,
-    'react-native-reanimated/packages/react-native-reanimated',
-  ),
-  'react-native-worklets': path.join(
-    CALLSTACK,
-    'react-native-reanimated/packages/react-native-worklets',
-  ),
 
   '@react-navigation/core': path.join(CALLSTACK, 'react-navigation/packages/core'),
   '@react-navigation/elements': path.join(CALLSTACK, 'react-navigation/packages/elements'),

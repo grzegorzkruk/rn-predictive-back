@@ -5,8 +5,8 @@
  *   react-native            -> ../react-native/packages/react-native
  *   react-native-screens    -> ../react-native-screens
  *   react-navigation        -> ../react-navigation/packages/*
- *   react-native-reanimated -> ../react-native-reanimated/packages/react-native-reanimated
- *   react-native-worklets   -> ../react-native-reanimated/packages/react-native-worklets
+ *
+ * react-native-reanimated and react-native-worklets come from npm.
  *
  * watchFolders must list every linked root, otherwise Metro does not see edits
  * made in those repos.
@@ -63,13 +63,10 @@ const config = {
     // Workspace packages that RN's JavaScript imports at runtime.
     path.join(RN_REPO, 'packages', 'react-native'),
     path.join(RN_REPO, 'packages', 'asset-utils'),
-    path.join(RN_REPO, 'packages', 'assets-registry'),
     path.join(RN_REPO, 'packages', 'normalize-color'),
     path.join(RN_REPO, 'packages', 'polyfills'),
     path.join(RN_REPO, 'packages', 'virtualized-lists'),
     path.join(CALLSTACK, 'react-native-screens'),
-    path.join(CALLSTACK, 'react-native-reanimated', 'packages', 'react-native-reanimated'),
-    path.join(CALLSTACK, 'react-native-reanimated', 'packages', 'react-native-worklets'),
     NAV_PACKAGES,
   ],
 
@@ -98,8 +95,6 @@ const config = {
       pathToRegex(path.join(CALLSTACK, 'react-native-screens', 'TVOSExample')),
       pathToRegex(path.join(CALLSTACK, 'react-native-screens', 'apps')),
       pathToRegex(path.join(CALLSTACK, 'react-navigation', 'example')),
-      pathToRegex(path.join(CALLSTACK, 'react-native-reanimated', 'apps')),
-      pathToRegex(path.join(CALLSTACK, 'react-native-reanimated', 'docs')),
     ],
 
     resolveRequest: (context, moduleName, platform) => {
