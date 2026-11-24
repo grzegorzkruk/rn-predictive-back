@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {useEffect} from 'react';
-import {BackHandler, Platform, Pressable, StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {Stack} from 'react-native-screens';
 
 import {activityHasProgressCallbacks} from '../native/ActivityBackInfo';
@@ -25,15 +24,8 @@ export function FragmentManagerBackScreen({
     useV5StackRoutes();
   const hasProgressCallbacks = activityHasProgressCallbacks();
 
-  useEffect(() => {
-    if (Platform.OS !== 'android') {
-      return undefined;
-    }
-    BackHandler.setInterceptEnabled(false);
-    return () => {
-      BackHandler.setInterceptEnabled(false);
-    };
-  }, []);
+  // No BackHandler listener here asks for `intercept`, and the v4 tree that
+  // holds the other request is unmounted, so RN's callback stays disabled.
 
   const onDismiss = React.useCallback(
     (screenKey: string, origin: V5DismissOrigin) => {

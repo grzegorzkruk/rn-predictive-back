@@ -1,4 +1,4 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { useMemo } from 'react';
@@ -6,24 +6,25 @@ import {
   Animated,
   BackHandler,
   Platform,
-  PredictiveBackAnimatedView,
   StyleSheet,
   Text,
   useAnimatedValue,
   View,
 } from 'react-native';
+import { PredictiveBackProgressView } from 'rn-predictive-back-progress';
 
 import type { RootStackParamList } from '../NavigationDemo';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AnimatedProgress'>;
 
 /**
- * The single supported way to read predictive-back progress from JavaScript:
- * a host view that emits a Fabric direct event, consumed by Animated.event on
+ * Reads predictive-back progress in JavaScript through the rn-predictive-back-progress
+ * package: a host view that emits a Fabric direct event, consumed by Animated.event on
  * the native driver. Reanimated can consume the same event with useEvent.
  */
 export function AnimatedProgressScreen(_props: Props): React.JSX.Element {
   const progress = useAnimatedValue(0);
+  const isFocused = useIsFocused();
 
   const onProgress = useMemo(
     () => Animated.event([{ nativeEvent: { progress } }], { useNativeDriver: true }),
@@ -36,8 +37,13 @@ export function AnimatedProgressScreen(_props: Props): React.JSX.Element {
       if (Platform.OS !== 'android') {
         return undefined;
       }
-      BackHandler.setInterceptEnabled(true);
-      return undefined;
+      // The handler returns false so NavigationContainer's listener still pops.
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => false,
+        { intercept: true },
+      );
+      return () => subscription.remove();
     }, []),
   );
 
@@ -63,10 +69,10 @@ export function AnimatedProgressScreen(_props: Props): React.JSX.Element {
     <View style={styles.container}>
       <Text style={styles.hint}>
         Swipe from the left edge. Only the box animates: it is driven by
-        PredictiveBackAnimatedView through the native Animated driver. The stack
+        PredictiveBackProgressView through the native Animated driver. The stack
         screen itself does not move.
       </Text>
-      {Platform.OS === 'android' ? <PredictiveBackAnimatedView onProgress={onProgress} /> : null}
+      {Platform.OS === 'android' ? <PredictiveBackProgressView active={isFocused} onProgress={onProgress} /> : null}
       <Animated.View style={boxStyle} />
     </View>
   );

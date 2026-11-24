@@ -3,12 +3,12 @@ import {useMemo} from 'react';
 import {
   Animated,
   Platform,
-  PredictiveBackAnimatedView,
   StyleSheet,
   Text,
   useAnimatedValue,
   View,
 } from 'react-native';
+import {PredictiveBackProgressView} from 'rn-predictive-back-progress';
 
 /**
  * Shared driver for react-native-screens **Stack v5** (`Stack.Host` /
@@ -112,9 +112,11 @@ export function useV5StackRoutes() {
 export function V5Page({
   route,
   showRnCard = false,
+  rnCardActive = false,
 }: {
   route: V5Route;
   showRnCard?: boolean;
+  rnCardActive?: boolean;
 }): React.JSX.Element {
   return (
     <View style={[pageStyles.page, { backgroundColor: pageColor(route.depth) }]}>
@@ -124,18 +126,19 @@ export function V5Page({
         This page is a StackScreenFragment. Its return transition is an
         androidx.transition Slide, which FragmentManager can seek.
       </Text>
-      {showRnCard && route.depth >= 2 ? <RnInterceptCard /> : null}
+      {showRnCard && route.depth >= 2 ? <RnInterceptCard active={rnCardActive} /> : null}
     </View>
   );
 }
 
 /**
  * JS-driven marker that only moves when React Native owns the swipe
- * (`setInterceptEnabled(true)` → PredictiveBackAnimatedView gets progress).
+ * (`active` follows the intercept switch, so PredictiveBackProgressView takes the swipe
+ * and passes the commit on to the `intercept: true` listener).
  * When RN is not consuming, FragmentManager owns the swipe and this card stays
  * still while the whole page seeks.
  */
-function RnInterceptCard(): React.JSX.Element {
+function RnInterceptCard({active}: {active: boolean}): React.JSX.Element {
   const progress = useAnimatedValue(0);
   const onProgress = useMemo(
     () => Animated.event([{nativeEvent: {progress}}], {useNativeDriver: true}),
@@ -157,11 +160,11 @@ function RnInterceptCard(): React.JSX.Element {
 
   return (
     <View style={pageStyles.cardSlot}>
-      {Platform.OS === 'android' ? <PredictiveBackAnimatedView onProgress={onProgress} /> : null}
+      {Platform.OS === 'android' ? <PredictiveBackProgressView active={active} onProgress={onProgress} /> : null}
       <Animated.View style={cardStyle}>
         <Text style={pageStyles.cardTitle}>RN card</Text>
         <Text style={pageStyles.cardHint}>
-          Moves only while JS intercept is on. Off: this stays put, the page seeks.
+          Moves only while the intercept option is on. Off: this stays put, the page seeks.
         </Text>
       </Animated.View>
     </View>

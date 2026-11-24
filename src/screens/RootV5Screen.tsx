@@ -31,49 +31,48 @@ export function RootV5Screen({
     useV5StackRoutes();
   const [intercept, setIntercept] = useState(false);
 
+  // When RN owns the swipe, FragmentManager never pops. Commit is
+  // hardwareBackPress — we have to detach the top route ourselves. With the
+  // switch off there is no listener, so nothing requests back and
+  // FragmentManager owns the swipe.
   useEffect(() => {
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== 'android' || !intercept) {
       return undefined;
     }
-    if (!intercept) {
-      BackHandler.setInterceptEnabled(false);
-      return undefined;
-    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (attachedCount < 2) {
+          return false;
+        }
+        note('hardwareBackPress -> popFromJs');
+        popFromJs();
+        return true;
+      },
+      {intercept: true},
+    );
 
     // Known limitation being proposed for fixing, kept visible on purpose:
     // FragmentManager registers its back callback lazily on the push
     // transaction, *after* this effect. Both register at PRIORITY_DEFAULT, so
     // the later registration wins and a second Push would seek the page and
-    // leave the card still. setInterceptEnabled(true) is a no-op while already
-    // consuming, so the only way to get back on top is to drop and re-add.
-    // This pulse is the workaround, not the design.
+    // leave the card still. The pulse below turns this listener's request off
+    // and on. JS sends every change to native, but
+    // ReactActivity.setInterceptEnabled only enables or disables React
+    // Native's callback and never registers it again, so the pulse does not
+    // change the order. The cyan card wins the gesture because its
+    // PredictiveBackProgressView re-adds the package's callback when it turns
+    // active. This pulse is the workaround under discussion, not the design.
     const rearm = () => {
-      BackHandler.setInterceptEnabled(false);
-      BackHandler.setInterceptEnabled(true);
+      subscription.setInterceptEnabled(false);
+      subscription.setInterceptEnabled(true);
     };
     rearm();
     const timer = setTimeout(rearm, 64);
     return () => {
       clearTimeout(timer);
-      BackHandler.setInterceptEnabled(false);
+      subscription.remove();
     };
-  }, [intercept, attachedCount]);
-
-  // When RN owns the swipe, FragmentManager never pops. Commit is
-  // hardwareBackPress — we have to detach the top route ourselves.
-  useEffect(() => {
-    if (Platform.OS !== 'android' || !intercept) {
-      return undefined;
-    }
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (attachedCount < 2) {
-        return false;
-      }
-      note('hardwareBackPress -> popFromJs');
-      popFromJs();
-      return true;
-    });
-    return () => sub.remove();
   }, [intercept, attachedCount, popFromJs, note]);
 
   const onDismiss = React.useCallback(
@@ -94,13 +93,13 @@ export function RootV5Screen({
       </View>
 
       <View style={styles.interceptRow}>
-        <Text style={styles.interceptLabel}>JS intercept (give swipe to RN)</Text>
+        <Text style={styles.interceptLabel}>intercept option (give swipe to RN)</Text>
         <Switch value={intercept} onValueChange={setIntercept} />
       </View>
 
       <Text style={styles.hint}>
         {intercept
-          ? 'RN consumes via setInterceptEnabled, re-armed after each push. The cyan card on depth 2+ follows the finger; the page itself does not seek. Commit is hardwareBackPress -> popFromJs.'
+          ? 'RN consumes via the intercept option, re-armed after each push. The cyan card on depth 2+ follows the finger; the page itself does not seek. Commit is hardwareBackPress -> popFromJs.'
           : 'RN is not consuming, so FragmentManager owns the swipe. Swipe from the left edge: the page seeks, the cyan card stays still. onNativeDismiss on commit only.'}
       </Text>
 
@@ -113,7 +112,7 @@ export function RootV5Screen({
               activityMode={route.activityMode}
               onDismiss={(screenKey) => onDismiss(screenKey, 'js')}
               onNativeDismiss={(screenKey) => onDismiss(screenKey, 'native')}>
-              <V5Page route={route} showRnCard />
+              <V5Page route={route} showRnCard rnCardActive={intercept} />
             </Stack.Screen>
           ))}
         </Stack.Host>

@@ -36,10 +36,24 @@ export const OpenRootV5Context = React.createContext<() => void>(() => {});
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 /**
- * One owner for the v4 tree. Other screens must not call setInterceptEnabled(false)
- * on blur: on API 36 that disables RN's callback and turns the *next* swipe into a
- * system app-exit. Home is the only place we want that. Everywhere else RN must
- * consume so NavigationContainer's BackHandler can pop.
+ * The listener that holds the v4 tree's back request. Its handler returns
+ * false, so NavigationContainer's own listener still pops. Only its
+ * `intercept` option matters.
+ */
+let ownershipSubscription: ReturnType<typeof BackHandler.addEventListener> | null =
+  null;
+
+/**
+ * Routes that hold their own `intercept` request. The demo tree does not
+ * request back for them, so their request alone decides.
+ */
+const ROUTES_WITH_OWN_INTERCEPT: ReadonlySet<string> = new Set(['InterceptToggle']);
+
+/**
+ * One owner for the v4 tree: request back on every route except Home. On API 36
+ * no request means the swipe goes to the system, which on Home is the app-exit
+ * we want. Everywhere else RN must consume so NavigationContainer's
+ * BackHandler can pop. Screens only add their own requests on top of this one.
  *
  * Must not use useNavigationState here: that hook requires a navigator, and
  * NavigationContainer's direct children are outside one.
@@ -50,12 +64,16 @@ function syncAndroidBackOwnership(state?: NavigationState): void {
   }
   const routeName =
     state?.routes[state.index]?.name ?? navigationRef.getCurrentRoute()?.name;
-  BackHandler.setInterceptEnabled(routeName != null && routeName !== 'Home');
+  ownershipSubscription?.setInterceptEnabled(
+    routeName != null &&
+      routeName !== 'Home' &&
+      !ROUTES_WITH_OWN_INTERCEPT.has(routeName),
+  );
 }
 
 /**
  * The react-navigation surface: react-native's own predictive-back primitives
- * (`PredictiveBackAnimatedView`, `BackHandler.setInterceptEnabled`), the v4 stack
+ * (`PredictiveBackProgressView`, the BackHandler `intercept` option), the v4 stack
  * that `@react-navigation/native-stack` drives, and the *nested* v5 control.
  *
  * It has to unmount completely for the root v5 experiment to be meaningful. A
@@ -80,8 +98,22 @@ export function NavigationDemo({
   onOpenFragmentManager: () => void;
 }): React.JSX.Element {
   useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => false,
+      { intercept: false },
+    );
+    ownershipSubscription = subscription;
+    // onReady may have fired before this effect. Read the current route now.
+    syncAndroidBackOwnership();
     return () => {
-      BackHandler.setInterceptEnabled(false);
+      subscription.remove();
+      if (ownershipSubscription === subscription) {
+        ownershipSubscription = null;
+      }
     };
   }, []);
 

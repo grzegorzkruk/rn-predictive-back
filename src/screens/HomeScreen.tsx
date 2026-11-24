@@ -35,7 +35,7 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         />
         <Item
           title="Animated progress"
-          hint="PredictiveBackAnimatedView + Animated.event on the native driver."
+          hint="PredictiveBackProgressView (rn-predictive-back-progress) + Animated.event on the native driver."
           onPress={() => navigation.navigate('AnimatedProgress')}
         />
         <Item
@@ -45,12 +45,12 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         />
         <Item
           title="Intercept ownership"
-          hint="BackHandler.setInterceptEnabled on and off, plus hardwareBackPress."
+          hint="BackHandler listener with the intercept option on and off, plus hardwareBackPress."
           onPress={() => navigation.navigate('InterceptToggle')}
         />
         <Item
           title="Native PredictiveBackHandler"
-          hint="Plugin path. Kotlin handler registered on ReactActivity — RN consumes and forwards progress. Fights a root v5 stack while registered."
+          hint="Handler path. Kotlin handler registered with rn-predictive-back-progress — the package owns the swipe and forwards progress. Fights a root v5 stack while registered."
           onPress={() => navigation.navigate('NativeHandler')}
         />
         <Item
@@ -65,7 +65,7 @@ export function HomeScreen({ navigation }: Props): React.JSX.Element {
         />
         <Item
           title="Stack v5 (root)"
-          hint="Test. Root Stack.Host. Push past depth 1, then use JS intercept to hand the swipe to RN (the card moves) or back to screens (the page seeks)."
+          hint="Test. Root Stack.Host. Push past depth 1, then use the intercept option to hand the swipe to RN (the card moves) or back to screens (the page seeks)."
           onPress={openRootV5}
         />
       </View>

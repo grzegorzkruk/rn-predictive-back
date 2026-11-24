@@ -25,9 +25,9 @@ class MainActivity : ReactActivity() {
     // No back handling here, and that is the point: an app should not have to opt out of
     // React Native's back callback to get a seekable stack pop.
     //
-    // The *plugin* path is the opposite and lives in DemoPredictiveBackHandlerModule: JS
-    // registers a PredictiveBackHandler on this activity for as long as that demo screen
-    // is focused. That is addPredictiveBackHandler, not a yield.
+    // The *handler* path is the opposite and lives in DemoPredictiveBackHandlerModule: JS
+    // registers a PredictiveBackHandler with rn-predictive-back-progress for as long as that
+    // demo screen is focused. That is PredictiveBackProgress.addHandler, not a yield.
     //
     // It used to. Disabling it via getBackPressedCallback() was the app-level workaround, and
     // screens' FabricExample did the same thing by reflecting on ReactActivity's private

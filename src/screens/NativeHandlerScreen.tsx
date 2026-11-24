@@ -23,14 +23,14 @@ type LogLine = {
 let nextId = 0;
 
 /**
- * Exercises `ReactActivity.addPredictiveBackHandler` — the native *plugin*
- * API. Contrast with Stack v5 (root), which *yields* so FragmentManager owns
- * the swipe, and with Animated progress, which observes through
- * PredictiveBackAnimatedView without being a handler.
+ * Exercises `PredictiveBackProgress.addHandler` from rn-predictive-back-progress,
+ * the native *handler* API. Contrast with Stack v5 (root), which *yields* so
+ * FragmentManager owns the swipe, and with Animated progress, which reads
+ * progress through PredictiveBackProgressView.
  *
- * Registering the handler is what makes RN consume the gesture. The screen
- * leaves `setInterceptEnabled` alone so you can see that the plugin by itself
- * is enough. Unregister on blur so this does not leak into the v5 experiments.
+ * Registering the handler is what takes the gesture. When the handler does not
+ * keep the commit, the package passes back on to React Native, where the
+ * navigator's `intercept: true` listener pops this screen. Unregister on blur so this does not leak into the v5 experiments.
  */
 export function NativeHandlerScreen({navigation}: Props): React.JSX.Element {
   const [registered, setRegistered] = useState(true);
@@ -112,11 +112,12 @@ export function NativeHandlerScreen({navigation}: Props): React.JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.hint}>
-        Plugin path: a Kotlin PredictiveBackHandler registered on ReactActivity.
-        While it is registered, RN consumes the swipe and forwards every phase
-        here. That fights a root v5 stack — FragmentManager will not seek.
-        Progress in the bar is a throttled JS copy of the native callbacks;
-        PredictiveBackAnimatedView is the API meant for animation.
+        Handler path: a Kotlin PredictiveBackHandler registered with the
+        rn-predictive-back-progress package. While it is registered, the package
+        owns the swipe and forwards every phase here. That fights a root v5
+        stack — FragmentManager will not seek. Progress in the bar is a
+        throttled JS copy of the native callbacks; PredictiveBackProgressView
+        is the API meant for animation.
       </Text>
 
       <View style={styles.row}>

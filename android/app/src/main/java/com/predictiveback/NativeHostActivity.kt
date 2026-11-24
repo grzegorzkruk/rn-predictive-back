@@ -20,7 +20,7 @@ import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler
  * [ReactFragment] filling the rest.
  *
  * The fragment does not own the back gesture. [ReactFragment] is not a
- * [com.facebook.react.ReactActivity], so `BackHandler.setInterceptEnabled`
+ * [com.facebook.react.ReactActivity], so the BackHandler `intercept` option
  * cannot see this dispatcher. The host decides. The callback starts disabled,
  * and the system pops this activity back to the React Native screen. Turning
  * the switch on claims the gesture: progress is reported here, and the commit

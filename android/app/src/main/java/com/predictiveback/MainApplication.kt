@@ -9,6 +9,9 @@ import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsOverrides_RNOSS_Stable_Android
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsProvider
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
 
@@ -76,5 +79,13 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
     loadReactNative(this)
+    // The demo needs the new predictive back behavior, which is behind a feature flag.
+    // RN's own entry point already used the single legal override() call inside
+    // loadReactNative, so a second override has to go through dangerouslyForceOverride.
+    ReactNativeFeatureFlags.dangerouslyForceOverride(
+        object :
+            ReactNativeFeatureFlagsProvider by ReactNativeFeatureFlagsOverrides_RNOSS_Stable_Android() {
+          override fun enablePredictiveBackAndroid(): Boolean = true
+        })
   }
 }

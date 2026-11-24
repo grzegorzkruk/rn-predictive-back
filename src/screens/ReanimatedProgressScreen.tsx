@@ -1,13 +1,14 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { BackHandler, Platform, PredictiveBackAnimatedView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Platform, StyleSheet, Text, View } from 'react-native';
 import Reanimated, {
   interpolate,
   useAnimatedStyle,
   useEvent,
   useSharedValue,
 } from 'react-native-reanimated';
+import { PredictiveBackProgressView } from 'rn-predictive-back-progress';
 
 import type { RootStackParamList } from '../NavigationDemo';
 
@@ -20,14 +21,15 @@ type ProgressEvent = {
 // useEvent only attaches on a Reanimated host. The public view is already
 // wrapped with RN Animated for Animated.event; wrap again so the worklet
 // registers on the UI thread.
-const ReanimatedPredictiveBack = Reanimated.createAnimatedComponent(PredictiveBackAnimatedView);
+const ReanimatedPredictiveBack = Reanimated.createAnimatedComponent(PredictiveBackProgressView);
 
 /**
- * Same PredictiveBackAnimatedView event as AnimatedProgressScreen, consumed
+ * Same PredictiveBackProgressView event as AnimatedProgressScreen, consumed
  * with Reanimated's useEvent instead of Animated.event.
  */
 export function ReanimatedProgressScreen(_props: Props): React.JSX.Element {
   const progress = useSharedValue(0);
+  const isFocused = useIsFocused();
 
   const onProgress = useEvent<ProgressEvent>(
     (event) => {
@@ -42,8 +44,13 @@ export function ReanimatedProgressScreen(_props: Props): React.JSX.Element {
       if (Platform.OS !== 'android') {
         return undefined;
       }
-      BackHandler.setInterceptEnabled(true);
-      return undefined;
+      // The handler returns false so NavigationContainer's listener still pops.
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => false,
+        { intercept: true },
+      );
+      return () => subscription.remove();
     }, []),
   );
 
@@ -59,10 +66,10 @@ export function ReanimatedProgressScreen(_props: Props): React.JSX.Element {
     <View style={styles.container}>
       <Text style={styles.hint}>
         Swipe from the left edge. Only the box animates: it is driven by
-        PredictiveBackAnimatedView through Reanimated useEvent. The stack
+        PredictiveBackProgressView through Reanimated useEvent. The stack
         screen itself does not move.
       </Text>
-      {Platform.OS === 'android' ? <ReanimatedPredictiveBack onProgress={onProgress} /> : null}
+      {Platform.OS === 'android' ? <ReanimatedPredictiveBack active={isFocused} onProgress={onProgress} /> : null}
       <Reanimated.View style={[styles.box, boxStyle]} />
     </View>
   );

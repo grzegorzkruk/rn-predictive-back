@@ -1,9 +1,9 @@
 import {DeviceEventEmitter, NativeModules, Platform} from 'react-native';
 
 /**
- * JS face of the demo native module that calls
- * `ReactActivity.addPredictiveBackHandler`. Not a public RN API — it exists
- * so this app can turn the plugin on and off from a screen.
+ * JS face of the demo native module that registers a handler with
+ * `PredictiveBackProgress.addHandler` from rn-predictive-back-progress. It
+ * exists so this app can turn the handler on and off from a screen.
  */
 type NativeModuleShape = {
   setRegistered: (registered: boolean) => void;

@@ -5,8 +5,8 @@ import {BackHandler, StyleSheet, Switch, Text, View} from 'react-native';
 /**
  * The React tree mounted by [NativeHostActivity]'s ReactFragment.
  *
- * `BackHandler.setInterceptEnabled` looks up a ReactActivity. This fragment's
- * host is not one, so that call cannot claim the gesture. The switch on the
+ * The BackHandler `intercept` option acts on a ReactActivity. This fragment's
+ * host is not one, so `intercept` cannot claim the gesture. The switch on the
  * native chrome does. Once it is on, a commit arrives here as
  * hardwareBackPress. Returning true keeps the activity. Returning false lets
  * the host finish, which is the pop back to the full React Native screen.

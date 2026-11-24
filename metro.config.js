@@ -3,7 +3,7 @@
  *
  * Checkouts linked into node_modules as symlinks by scripts/link.js:
  *   react-native            -> ../react-native/packages/react-native
- *   react-native-screens    -> ../react-native-screens
+ *   react-native-screens    -> ../react-native-screens (branch @grzegorzkruk/predictive-back)
  *   react-navigation        -> ../react-navigation/packages/*
  *
  * react-native-reanimated and react-native-worklets come from npm.
@@ -16,7 +16,8 @@ const path = require('node:path');
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 const CALLSTACK = path.resolve(__dirname, '..');
-const RN_REPO = path.join(CALLSTACK, 'react-native');
+// RN_REPO points at another react-native checkout, for example a PR worktree.
+const RN_REPO = process.env.RN_REPO ? path.resolve(process.env.RN_REPO) : path.join(CALLSTACK, 'react-native');
 const NAV_PACKAGES = path.join(CALLSTACK, 'react-navigation', 'packages');
 
 // The single React copy every module in the graph must share.
@@ -68,6 +69,7 @@ const config = {
     path.join(RN_REPO, 'packages', 'virtualized-lists'),
     path.join(CALLSTACK, 'react-native-screens'),
     NAV_PACKAGES,
+    path.join(CALLSTACK, 'rn-predictive-back-progress'),
   ],
 
   resolver: {

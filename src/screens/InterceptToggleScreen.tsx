@@ -1,7 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import type { RootStackParamList } from '../NavigationDemo';
@@ -18,11 +18,14 @@ let nextId = 0;
 /**
  * Shows the ownership rule:
  *
- *   react-native consumes the swipe  <=>  JS intercept is on (or a native
- *   PredictiveBackHandler is registered)
+ *   react-native consumes the swipe  <=>  a BackHandler listener has
+ *   `intercept: true` (or native code enables its own back callback)
  *
- * With intercept off, nothing in JS can pop on this screen and the system
- * animation runs instead. With intercept on, commit becomes hardwareBackPress.
+ * The switch sets `intercept` on this screen's listener. The demo tree does not
+ * add its own request on this route (see NavigationDemo), so this listener
+ * alone decides. With intercept off, nothing in JS can pop on this screen and
+ * the system animation runs instead. With intercept on, commit becomes
+ * hardwareBackPress.
  */
 export function InterceptToggleScreen({ navigation }: Props): React.JSX.Element {
   const [intercept, setIntercept] = useState(true);
@@ -33,35 +36,50 @@ export function InterceptToggleScreen({ navigation }: Props): React.JSX.Element 
     setLines((current) => [line, ...current].slice(0, 6));
   }, []);
 
-  // Toggle only while this screen is focused, so other screens keep working.
-  useEffect(() => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-    BackHandler.setInterceptEnabled(intercept);
-    log(`setInterceptEnabled(${intercept})`);
-  }, [intercept, log]);
+  const subscriptionRef = useRef<ReturnType<typeof BackHandler.addEventListener> | null>(
+    null,
+  );
+  const interceptRef = useRef(intercept);
 
+  // The listener exists only while this screen is focused, so its request
+  // does not leak into other screens.
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS !== 'android') {
         return undefined;
       }
-      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        log('hardwareBackPress -> popping');
-        navigation.goBack();
-        return true;
-      });
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => {
+          log('hardwareBackPress -> popping');
+          navigation.goBack();
+          return true;
+        },
+        { intercept: interceptRef.current },
+      );
+      subscriptionRef.current = subscription;
       return () => {
         subscription.remove();
+        subscriptionRef.current = null;
       };
     }, [navigation, log]),
   );
 
+  // Change the request on the same listener. Removing and re-adding it would
+  // briefly drop interception.
+  useEffect(() => {
+    interceptRef.current = intercept;
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    subscriptionRef.current?.setInterceptEnabled(intercept);
+    log(`intercept: ${intercept}`);
+  }, [intercept, log]);
+
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Text style={styles.label}>JS intercept</Text>
+        <Text style={styles.label}>intercept option</Text>
         <Switch value={intercept} onValueChange={setIntercept} />
       </View>
 
